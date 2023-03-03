@@ -1,0 +1,6 @@
+node_modules
+coverage
+.env
+
+.idea
+*.iml
