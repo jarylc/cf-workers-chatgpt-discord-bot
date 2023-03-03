@@ -34,6 +34,7 @@ export namespace OpenAI {
             },
             body: JSON.stringify({
                 "model": model ? model : "gpt-3.5-turbo",
+                "max_tokens": 2000 / 4, // discord has a maximum of 2000 characters per message, a token is roughly 4 characters
                 "messages": context
             })
         })
