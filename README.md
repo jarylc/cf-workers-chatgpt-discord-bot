@@ -23,8 +23,7 @@ Note: This is mainly for personal use, if you would like to add features, do for
 6. Run `npx wrangler secret put DISCORD_TOKEN` and set the Discord bot's token
 7. Run `npx wrangler secret put OPENAI_API_KEY` and set the OpenAI API key
 8. Add space-delimited user IDs to whitelist in `DISCORD_USERID_WHITELIST` in wrangler.toml
-9. Run `wrangler queues create cf-workers-chatgpt-discord-bot-queue` to create the queue as Discord has a short timeout for webhook responses
-10. (Optional) To allow extra lines of context, run `npx wrangler kv:namespace create context` and replace the ID of `CHATGPT_DISCORD_BOT_KV` and increase `CONTEXT` to more than 0 in wrangler.toml (will consume a lot more tokens)
-11. (Optional) To change the model, update `CHATGPT_MODEL` in wrangler.toml to whatever you want as documented at https://platform.openai.com/docs/api-reference/chat/create#chat/create-model
-12. Run `npx wrangler publish` to deploy to Cloudflare Workers
-13. Set the `Interactions Endpoint URL` of your Discord application to the URL of the deployed worker
+9. (Optional) To allow extra lines of context, run `npx wrangler kv:namespace create context` and replace the ID of `CHATGPT_DISCORD_BOT_KV` and increase `CONTEXT` to more than 0 in wrangler.toml (will consume a lot more tokens)
+10. (Optional) To change the model, update `CHATGPT_MODEL` in wrangler.toml to whatever you want as documented at https://platform.openai.com/docs/api-reference/chat/create#chat/create-model
+11. Run `npx wrangler publish` to deploy to Cloudflare Workers
+12. Set the `Interactions Endpoint URL` of your Discord application to the URL of the deployed worker

@@ -5,7 +5,6 @@ import { Discord } from "./discord";
 import { DISCORD_COMMANDS } from "./commands";
 
 export interface Env {
-	QUERIES_QUEUE: Queue
 	CHATGPT_DISCORD_BOT_KV: KVNamespace
 	DISCORD_PUBLIC_KEY: string
 	DISCORD_APPLICATION_ID: string
@@ -20,6 +19,7 @@ export default {
 	async fetch(
 		request: Request,
 		env: Env,
+		ctx: ExecutionContext,
 	): Promise<Response> {
 		// verify request came from Discord
 		const signature = request.headers.get('x-signature-ed25519');
@@ -86,14 +86,32 @@ export default {
 					// prepare context
 					context.push({"role": "user", "content": query})
 
-					// send context to queue
-					const queued: Cloudflare.QueueQuery = {
-						chatID: chatId,
-						interactionToken: message.token,
-						context: context,
-					}
-					await env.QUERIES_QUEUE.send(queued)
+					// send response to Discord once ready
+					ctx.waitUntil(new Promise(async _ => {
+						// query OpenAPI with context
+						const response = await OpenAI.complete(env.OPENAI_API_KEY, env.CHATGPT_MODEL, context)
+						const json: OpenAI.Response = await response.json()
+						const content = json.choices[0].message.content.trim()
 
+						// add reply to context
+						if (env.CONTEXT && env.CONTEXT > 0 && env.CHATGPT_DISCORD_BOT_KV) {
+							context.push({"role": "assistant", "content": content})
+							await Cloudflare.putKVChatContext(env.CHATGPT_DISCORD_BOT_KV, chatId, context)
+						}
+
+						// send response to Discord
+						await fetch(`https://discord.com/api/v10/webhooks/${env.DISCORD_APPLICATION_ID}/${message.token}/messages/@original`, {
+							method: "PATCH",
+							headers: {
+								"Content-Type": "application/json;charset=UTF-8",
+							},
+							body: JSON.stringify({
+								content: `> ${query}\n\n${content}`,
+							})
+						})
+					}))
+
+					// immediately respond an acknowledgement first
 					return Discord.generateResponse({
 						type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
 					})
@@ -154,35 +172,6 @@ export default {
 		}, {
 			status: 500,
 		})
-	},
-	async queue(batch: MessageBatch<Cloudflare.QueueQuery>, env: Env): Promise<void> {
-		for (const message of batch.messages) {
-			const query: Cloudflare.QueueQuery = message.body;
-
-			const original = query.context[query.context.length-1].content
-
-			// query OpenAPI with context
-			const response = await OpenAI.complete(env.OPENAI_API_KEY, env.CHATGPT_MODEL, query.context)
-			const json: OpenAI.Response = await response.json()
-			const content = json.choices[0].message.content.trim()
-
-			// add reply to context
-			if (env.CONTEXT && env.CONTEXT > 0 && env.CHATGPT_DISCORD_BOT_KV) {
-				query.context.push({"role": "assistant", "content": content})
-				await Cloudflare.putKVChatContext(env.CHATGPT_DISCORD_BOT_KV, query.chatID, query.context)
-			}
-
-			// send response to Discord
-			await fetch(`https://discord.com/api/v10/webhooks/${env.DISCORD_APPLICATION_ID}/${query.interactionToken}/messages/@original`, {
-				method: "PATCH",
-				headers: {
-					"Content-Type": "application/json;charset=UTF-8",
-				},
-				body: JSON.stringify({
-					content: `> ${original}\n\n${content}`,
-				})
-			})
-		}
 	}
 }
 
