@@ -34,6 +34,7 @@ export namespace OpenAI {
             },
             body: JSON.stringify({
                 "model": model ? model : "gpt-3.5-turbo",
+                "max_tokens": (4096 / 4), // Discord embed descriptions can take 4096 characters, a token is roughly 4 characters
                 "messages": context
             })
         })

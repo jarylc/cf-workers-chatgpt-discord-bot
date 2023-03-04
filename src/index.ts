@@ -99,24 +99,14 @@ export default {
 							await Cloudflare.putKVChatContext(env.CHATGPT_DISCORD_BOT_KV, chatId, context)
 						}
 
-						// split content to 2048 characters and paragraphs
-						const contentSplit = content.match(/.{1,2048}/g) || []
-						const embeds = []
-						for (let i = 0; i < contentSplit.length; i++) {
-							embeds.push({
-								description: contentSplit[i],
-							})
-						}
-
 						const result = await fetch(`https://discord.com/api/v10/webhooks/${env.DISCORD_APPLICATION_ID}/${message.token}/messages/@original`, {
 							method: "PATCH",
 							headers: {
 								"Content-Type": "application/json;charset=UTF-8",
 							},
-							// truncate to 2000 characters
 							body: JSON.stringify({
 								content: `> ${query}`,
-								embeds: embeds
+								embeds: [{description: content}]
 							})
 						})
 						const resultJSON = await result.json()
