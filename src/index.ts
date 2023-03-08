@@ -99,7 +99,7 @@ export default {
 							await Cloudflare.putKVChatContext(env.CHATGPT_DISCORD_BOT_KV, chatId, context)
 						}
 
-						const result = await fetch(`https://discord.com/api/v10/webhooks/${env.DISCORD_APPLICATION_ID}/${message.token}/messages/@original`, {
+						await fetch(`https://discord.com/api/v10/webhooks/${env.DISCORD_APPLICATION_ID}/${message.token}/messages/@original`, {
 							method: "PATCH",
 							headers: {
 								"Content-Type": "application/json;charset=UTF-8",
@@ -109,8 +109,6 @@ export default {
 								embeds: [{description: content}]
 							})
 						})
-						const resultJSON = await result.json()
-						console.log(resultJSON)
 					}))
 
 					// immediately respond an acknowledgement first
