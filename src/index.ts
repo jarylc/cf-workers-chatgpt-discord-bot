@@ -12,6 +12,7 @@ export interface Env {
 	DISCORD_USERID_WHITELIST: string
 	OPENAI_API_KEY: string
 	CHATGPT_MODEL: string
+	CHATGPT_BEHAVIOR: string
 	CONTEXT: number
 }
 
@@ -89,7 +90,7 @@ export default {
 					// send response to Discord once ready
 					ctx.waitUntil(new Promise(async _ => {
 						// query OpenAPI with context
-						const response = await OpenAI.complete(env.OPENAI_API_KEY, env.CHATGPT_MODEL, context)
+						const response = await OpenAI.complete(env.OPENAI_API_KEY, env.CHATGPT_MODEL, env.CHATGPT_BEHAVIOR, `dc_${userId}`, context)
 						const json: OpenAI.Response = await response.json()
 						const content = json.choices[0].message.content.trim()
 

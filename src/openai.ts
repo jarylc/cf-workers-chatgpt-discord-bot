@@ -25,7 +25,16 @@ export namespace OpenAI {
         total_tokens:      number;
     }
 
-    export function complete(api_key: string, model: string, context: Message[]) {
+    export async function complete(api_key: string, model: string, system: string, user: string, context: Message[]) {
+        if (system.trim() != "")
+            context.unshift({role: "system", content: system})
+
+        const userHash = Array.from(
+            new Uint8Array(
+                await crypto.subtle.digest({name: 'SHA-256'}, new TextEncoder().encode(user))
+            )
+        ).map((b) => b.toString(16).padStart(2, "0")).join("")
+
         return fetch("https://api.openai.com/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -35,6 +44,7 @@ export namespace OpenAI {
             body: JSON.stringify({
                 "model": model ? model : "gpt-3.5-turbo",
                 "max_tokens": (4096 / 4), // Discord embed descriptions can take 4096 characters, a token is roughly 4 characters
+                "user": userHash,
                 "messages": context
             })
         })
