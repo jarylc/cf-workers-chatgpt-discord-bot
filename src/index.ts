@@ -90,9 +90,7 @@ export default {
 					// send response to Discord once ready
 					ctx.waitUntil(new Promise(async _ => {
 						// query OpenAPI with context
-						const response = await OpenAI.complete(env.OPENAI_API_KEY, env.CHATGPT_MODEL, env.CHATGPT_BEHAVIOR, `dc_${userId}`, context)
-						const json: OpenAI.Response = await response.json()
-						const content = json.choices[0].message.content.trim()
+						const content = await OpenAI.complete(env.OPENAI_API_KEY, env.CHATGPT_MODEL, env.CHATGPT_BEHAVIOR, `dc_${userId}`, context)
 
 						// add reply to context
 						if (env.CONTEXT && env.CONTEXT > 0 && env.CHATGPT_DISCORD_BOT_KV) {

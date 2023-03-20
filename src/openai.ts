@@ -35,7 +35,7 @@ export namespace OpenAI {
             )
         ).map((b) => b.toString(16).padStart(2, "0")).join("")
 
-        return fetch("https://api.openai.com/v1/chat/completions", {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -48,5 +48,7 @@ export namespace OpenAI {
                 "messages": context
             })
         })
+        const json: OpenAI.Response = await response.json()
+        return json.choices[0].message.content.trim()
     }
 }
